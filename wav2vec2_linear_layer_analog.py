@@ -89,6 +89,10 @@ analog_model = AnalogWav2Vec2ForCTC(config, rpu_config=rpu_config, debug=True)  
 debug_print("\nTransferring weights from digital to analog model...")
 analog_model.transfer_digital_weights(digital_model)
 
+# Move model to CUDA
+debug_print("\nMoving model to CUDA...")
+analog_model = analog_model.to('cuda')
+
 # Switch to evaluation mode for inference
 debug_print("\nSwitching to evaluation mode...")
 analog_model.eval()
@@ -96,6 +100,7 @@ analog_model.eval()
 # Example input for testing
 debug_print("\nPreparing test input...")
 dummy_input = torch.randn(1, 16000)  # 1 second of 16kHz audio
+dummy_input = dummy_input.to('cuda')  # Move input to CUDA
 debug_print(f"Input shape: {dummy_input.shape}")
 
 # Run inference
