@@ -28,7 +28,7 @@ model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 model.eval()
 
 # Step 2: Load a sample from LibriSpeech (use streaming for memory efficiency)
-dataset = load_dataset("librispeech_asr", "clean", split="test", streaming=True)
+dataset = load_dataset("ç", "clean", split="test", streaming=True)
 sample = next(iter(dataset))
 
 # Step 3: Preprocess audio
