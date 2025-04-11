@@ -118,7 +118,7 @@ class QuantizationEvaluator:
 
         # Quantize model
         logger.info("Quantizing model...")
-        quantizer = Quantizer(weight_bits=8, activation_bits=8)
+        quantizer = Quantizer(weight_bits=16, activation_bits=16)
         calibration_data = [(self.preprocess_batch([item]).to(self.device), None) for item in data[:10]]
         quantized_model = quantizer.ptq(self.model, calibration_data, num_batches=10)
 
@@ -127,6 +127,36 @@ class QuantizationEvaluator:
 
         wer_diff = quantized_results["wer"] - original_results["wer"]
         time_diff = quantized_results["avg_inference_time"] - original_results["avg_inference_time"]
+
+        # 添加文本预测比较
+        logger.info("\nText Prediction Comparison:")
+        # 选取几个样本进行比较
+        comparison_samples = data[:3]  # 只比较前3个样本
+        
+        for i, sample in enumerate(comparison_samples):
+            # 获取输入
+            input_values = self.preprocess_batch([sample]).to(self.device)
+            
+            # 获取原始文本
+            reference_text = sample["text"]
+            
+            # 原始模型预测
+            with torch.no_grad():
+                original_logits = self.model(input_values).logits
+                original_ids = torch.argmax(original_logits, dim=-1)
+                original_prediction = self.processor.batch_decode(original_ids)[0]
+            
+            # 量化模型预测
+            with torch.no_grad():
+                quantized_logits = quantized_model(input_values).logits
+                quantized_ids = torch.argmax(quantized_logits, dim=-1)
+                quantized_prediction = self.processor.batch_decode(quantized_ids)[0]
+            
+            # 输出比较
+            logger.info(f"\nSample {i+1}:")
+            logger.info(f"  Reference: \"{reference_text}\"")
+            logger.info(f"  Original:  \"{original_prediction}\"")
+            logger.info(f"  Quantized: \"{quantized_prediction}\"")
 
         return {
             "original": original_results,
