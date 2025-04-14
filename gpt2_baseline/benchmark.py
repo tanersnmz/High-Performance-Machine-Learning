@@ -20,6 +20,7 @@ class GPT2Benchmark:
         # Initialize model and tokenizer
         logger.info(f"Loading {model_name} model and tokenizer...")
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+        self.tokenizer.pad_token = self.tokenizer.eos_token  # Set padding token to EOS token
         self.model = GPT2LMHeadModel.from_pretrained(model_name).to(self.device)
         
         # Load dataset
@@ -33,17 +34,22 @@ class GPT2Benchmark:
         
         # Prepare data
         train_data = self.dataset["train"]["text"]
-        train_data = [text for text in train_data if len(text) > 0]
+        train_data = [text for text in train_data if len(text.strip()) > 0]  # Filter out empty texts
         
         metrics = {
             "training_time": [],
             "memory_usage": [],
-            "throughput": []
+            "throughput": [],
+            "loss": [],
+            "perplexity": []
         }
         
         for i in tqdm(range(num_batches)):
             # Prepare batch
             batch_texts = train_data[i*self.batch_size:(i+1)*self.batch_size]
+            if not batch_texts:  # Skip if batch is empty
+                continue
+                
             inputs = self.tokenizer(batch_texts, 
                                  padding=True, 
                                  truncation=True, 
@@ -57,6 +63,9 @@ class GPT2Benchmark:
             outputs = self.model(**inputs, labels=inputs["input_ids"])
             loss = outputs.loss
             
+            # Calculate perplexity
+            perplexity = torch.exp(loss)
+            
             # Backward pass
             loss.backward()
             
@@ -64,9 +73,20 @@ class GPT2Benchmark:
             batch_time = time.time() - start_time
             memory_usage = torch.cuda.memory_allocated() / 1024**2  # MB
             
+            # Log individual batch metrics to wandb
+            wandb.log({
+                "batch_training_time": batch_time,
+                "batch_memory_usage": memory_usage,
+                "batch_throughput": self.batch_size / batch_time,
+                "batch_loss": loss.item(),
+                "batch_perplexity": perplexity.item()
+            })
+            
             metrics["training_time"].append(batch_time)
             metrics["memory_usage"].append(memory_usage)
             metrics["throughput"].append(self.batch_size / batch_time)
+            metrics["loss"].append(loss.item())
+            metrics["perplexity"].append(perplexity.item())
             
             # Clear gradients
             self.model.zero_grad()
@@ -80,18 +100,22 @@ class GPT2Benchmark:
         
         # Prepare data
         test_data = self.dataset["test"]["text"]
-        test_data = [text for text in test_data if len(text) > 0]
+        test_data = [text for text in test_data if len(text.strip()) > 0]  # Filter out empty texts
         
         metrics = {
             "inference_time": [],
             "memory_usage": [],
-            "throughput": []
+            "throughput": [],
+            "perplexity": []
         }
         
         with torch.no_grad():
             for i in tqdm(range(num_batches)):
                 # Prepare batch
                 batch_texts = test_data[i*self.batch_size:(i+1)*self.batch_size]
+                if not batch_texts:  # Skip if batch is empty
+                    continue
+                    
                 inputs = self.tokenizer(batch_texts, 
                                      padding=True, 
                                      truncation=True, 
@@ -102,15 +126,26 @@ class GPT2Benchmark:
                 start_time = time.time()
                 
                 # Forward pass
-                outputs = self.model(**inputs)
+                outputs = self.model(**inputs, labels=inputs["input_ids"])
+                loss = outputs.loss
+                perplexity = torch.exp(loss)
                 
                 # Record metrics
                 batch_time = time.time() - start_time
                 memory_usage = torch.cuda.memory_allocated() / 1024**2  # MB
                 
+                # Log individual batch metrics to wandb
+                wandb.log({
+                    "batch_inference_time": batch_time,
+                    "batch_inference_memory": memory_usage,
+                    "batch_inference_throughput": self.batch_size / batch_time,
+                    "batch_inference_perplexity": perplexity.item()
+                })
+                
                 metrics["inference_time"].append(batch_time)
                 metrics["memory_usage"].append(memory_usage)
                 metrics["throughput"].append(self.batch_size / batch_time)
+                metrics["perplexity"].append(perplexity.item())
         
         return metrics
     
@@ -136,21 +171,27 @@ class GPT2Benchmark:
                 "avg_time": np.mean(training_metrics["training_time"]),
                 "avg_memory": np.mean(training_metrics["memory_usage"]),
                 "avg_throughput": np.mean(training_metrics["throughput"]),
+                "avg_loss": np.mean(training_metrics["loss"]),
+                "avg_perplexity": np.mean(training_metrics["perplexity"]),
                 "std_time": np.std(training_metrics["training_time"]),
                 "std_memory": np.std(training_metrics["memory_usage"]),
-                "std_throughput": np.std(training_metrics["throughput"])
+                "std_throughput": np.std(training_metrics["throughput"]),
+                "std_loss": np.std(training_metrics["loss"]),
+                "std_perplexity": np.std(training_metrics["perplexity"])
             },
             "inference": {
                 "avg_time": np.mean(inference_metrics["inference_time"]),
                 "avg_memory": np.mean(inference_metrics["memory_usage"]),
                 "avg_throughput": np.mean(inference_metrics["throughput"]),
+                "avg_perplexity": np.mean(inference_metrics["perplexity"]),
                 "std_time": np.std(inference_metrics["inference_time"]),
                 "std_memory": np.std(inference_metrics["memory_usage"]),
-                "std_throughput": np.std(inference_metrics["throughput"])
+                "std_throughput": np.std(inference_metrics["throughput"]),
+                "std_perplexity": np.std(inference_metrics["perplexity"])
             }
         }
         
-        # Log to wandb
+        # Log final statistics to wandb
         wandb.log(results)
         
         # Print results
@@ -159,11 +200,14 @@ class GPT2Benchmark:
         logger.info(f"Average time per batch: {results['training']['avg_time']:.4f} ± {results['training']['std_time']:.4f} seconds")
         logger.info(f"Average memory usage: {results['training']['avg_memory']:.2f} ± {results['training']['std_memory']:.2f} MB")
         logger.info(f"Average throughput: {results['training']['avg_throughput']:.2f} ± {results['training']['std_throughput']:.2f} samples/second")
+        logger.info(f"Average loss: {results['training']['avg_loss']:.4f} ± {results['training']['std_loss']:.4f}")
+        logger.info(f"Average perplexity: {results['training']['avg_perplexity']:.4f} ± {results['training']['std_perplexity']:.4f}")
         
         logger.info("\nInference:")
         logger.info(f"Average time per batch: {results['inference']['avg_time']:.4f} ± {results['inference']['std_time']:.4f} seconds")
         logger.info(f"Average memory usage: {results['inference']['avg_memory']:.2f} ± {results['inference']['std_memory']:.2f} MB")
         logger.info(f"Average throughput: {results['inference']['avg_throughput']:.2f} ± {results['inference']['std_throughput']:.2f} samples/second")
+        logger.info(f"Average perplexity: {results['inference']['avg_perplexity']:.4f} ± {results['inference']['std_perplexity']:.4f}")
         
         wandb.finish()
         return results

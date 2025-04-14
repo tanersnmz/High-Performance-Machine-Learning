@@ -1,0 +1,1 @@
+{"_timestamp":1.7445932712169876e+09,"_runtime":289.476952376,"batch_loss":6.752444267272949,"batch_inference_throughput":993.4989044827382,"batch_training_time":0.024071693420410156,"batch_memory_usage":1290.25146484375,"_step":1361,"_wandb":{"runtime":289},"batch_inference_time":0.008052349090576172,"batch_inference_memory":618.71826171875,"batch_throughput":332.3405570302286}
