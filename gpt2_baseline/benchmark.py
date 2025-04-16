@@ -1,40 +1,116 @@
 import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, GPT2Config
 from datasets import load_dataset
 import time
 import wandb
 import numpy as np
 from tqdm import tqdm
 import logging
+from typing import Dict, List, Optional, Union, Tuple
+from dataclasses import dataclass
+import itertools
+import platform
+import sys
+from datetime import datetime
 
-logging.basicConfig(level=logging.INFO)
+# Set up logging to both file and console
+log_filename = f"benchmark_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_filename),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 logger = logging.getLogger(__name__)
 
-class GPT2Benchmark:
-    def __init__(self, model_name="gpt2", batch_size=8, max_length=128):
+# Check system and CUDA availability
+system_info = [
+    f"Python version: {platform.python_version()}",
+    f"PyTorch version: {torch.__version__}",
+    f"CUDA available: {torch.cuda.is_available()}"
+]
+
+if torch.cuda.is_available():
+    system_info.extend([
+        f"CUDA version: {torch.version.cuda}",
+        f"GPU model: {torch.cuda.get_device_name(0)}",
+        f"Number of GPUs: {torch.cuda.device_count()}",
+        f"Available GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB"
+    ])
+else:
+    system_info.append("Warning: FlashAttention requires CUDA GPU support. CPU execution will not work.")
+
+# Log system information
+for info in system_info:
+    logger.info(info)
+
+@dataclass
+class ModelConfig:
+    model_name: str
+    use_flash_attention: bool = False
+    use_quantization: bool = False
+    batch_size: int = 8
+    max_length: int = 128
+
+class ModelBenchmark:
+    def __init__(self, config: ModelConfig):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model_name = model_name
-        self.batch_size = batch_size
-        self.max_length = max_length
+        self.config = config
+        
+        # Log configuration
+        logger.info(f"\nModel Configuration:")
+        logger.info(f"Model name: {config.model_name}")
+        logger.info(f"Use Flash Attention: {config.use_flash_attention}")
+        logger.info(f"Use Quantization: {config.use_quantization}")
+        logger.info(f"Batch size: {config.batch_size}")
+        logger.info(f"Max length: {config.max_length}")
         
         # Initialize model and tokenizer
-        logger.info(f"Loading {model_name} model and tokenizer...")
-        self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-        self.tokenizer.pad_token = self.tokenizer.eos_token  # Set padding token to EOS token
-        self.model = GPT2LMHeadModel.from_pretrained(model_name).to(self.device)
+        logger.info(f"\nLoading {config.model_name} model and tokenizer...")
+        self.tokenizer = GPT2Tokenizer.from_pretrained(config.model_name)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        
+        # Load configuration
+        model_config = GPT2Config.from_pretrained(config.model_name)
+        if config.use_flash_attention:
+            model_config.use_flash_attention = True
+            logger.info("Flash Attention enabled in model config")
+        
+        # Load model with configuration
+        self.model = GPT2LMHeadModel.from_pretrained(
+            config.model_name,
+            config=model_config
+        ).to(self.device)
+        
+        if config.use_quantization:
+            logger.info("Applying quantization to model...")
+            self.model = self.model.half()
+            logger.info("Model converted to FP16")
         
         # Load dataset
         logger.info("Loading dataset...")
         self.dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
         
-    def benchmark_training(self, num_batches=100):
+    def prepare_batch(self, texts: List[str]) -> Dict[str, torch.Tensor]:
+        """Prepare a batch of texts for model input"""
+        return self.tokenizer(
+            texts,
+            padding=True,
+            truncation=True,
+            max_length=self.config.max_length,
+            return_tensors="pt"
+        ).to(self.device)
+        
+    def benchmark_training(self, num_batches: int = 100) -> Dict[str, List[float]]:
         """Benchmark training performance"""
         logger.info("Starting training benchmark...")
         self.model.train()
         
         # Prepare data
         train_data = self.dataset["train"]["text"]
-        train_data = [text for text in train_data if len(text.strip()) > 0]  # Filter out empty texts
+        train_data = [text for text in train_data if len(text.strip()) > 0]
         
         metrics = {
             "training_time": [],
@@ -45,62 +121,53 @@ class GPT2Benchmark:
         }
         
         for i in tqdm(range(num_batches)):
-            # Prepare batch
-            batch_texts = train_data[i*self.batch_size:(i+1)*self.batch_size]
-            if not batch_texts:  # Skip if batch is empty
+            batch_texts = train_data[i*self.config.batch_size:(i+1)*self.config.batch_size]
+            if not batch_texts:
                 continue
                 
-            inputs = self.tokenizer(batch_texts, 
-                                 padding=True, 
-                                 truncation=True, 
-                                 max_length=self.max_length,
-                                 return_tensors="pt").to(self.device)
+            inputs = self.prepare_batch(batch_texts)
             
-            # Start timing
             start_time = time.time()
             
-            # Forward pass
             outputs = self.model(**inputs, labels=inputs["input_ids"])
             loss = outputs.loss
-            
-            # Calculate perplexity
             perplexity = torch.exp(loss)
             
-            # Backward pass
             loss.backward()
             
-            # Record metrics
             batch_time = time.time() - start_time
-            memory_usage = torch.cuda.memory_allocated() / 1024**2  # MB
+            memory_usage = torch.cuda.memory_allocated() / 1024**2
             
-            # Log individual batch metrics to wandb
+            # Log batch metrics with configuration details
             wandb.log({
                 "batch_training_time": batch_time,
                 "batch_memory_usage": memory_usage,
-                "batch_throughput": self.batch_size / batch_time,
+                "batch_throughput": self.config.batch_size / batch_time,
                 "batch_loss": loss.item(),
-                "batch_perplexity": perplexity.item()
+                "batch_perplexity": perplexity.item(),
+                "batch_size": self.config.batch_size,
+                "max_length": self.config.max_length,
+                "use_flash_attention": self.config.use_flash_attention,
+                "use_quantization": self.config.use_quantization
             })
             
             metrics["training_time"].append(batch_time)
             metrics["memory_usage"].append(memory_usage)
-            metrics["throughput"].append(self.batch_size / batch_time)
+            metrics["throughput"].append(self.config.batch_size / batch_time)
             metrics["loss"].append(loss.item())
             metrics["perplexity"].append(perplexity.item())
             
-            # Clear gradients
             self.model.zero_grad()
             
         return metrics
     
-    def benchmark_inference(self, num_batches=100):
+    def benchmark_inference(self, num_batches: int = 100) -> Dict[str, List[float]]:
         """Benchmark inference performance"""
         logger.info("Starting inference benchmark...")
         self.model.eval()
         
-        # Prepare data
         test_data = self.dataset["test"]["text"]
-        test_data = [text for text in test_data if len(text.strip()) > 0]  # Filter out empty texts
+        test_data = [text for text in test_data if len(text.strip()) > 0]
         
         metrics = {
             "inference_time": [],
@@ -111,61 +178,61 @@ class GPT2Benchmark:
         
         with torch.no_grad():
             for i in tqdm(range(num_batches)):
-                # Prepare batch
-                batch_texts = test_data[i*self.batch_size:(i+1)*self.batch_size]
-                if not batch_texts:  # Skip if batch is empty
+                batch_texts = test_data[i*self.config.batch_size:(i+1)*self.config.batch_size]
+                if not batch_texts:
                     continue
                     
-                inputs = self.tokenizer(batch_texts, 
-                                     padding=True, 
-                                     truncation=True, 
-                                     max_length=self.max_length,
-                                     return_tensors="pt").to(self.device)
+                inputs = self.prepare_batch(batch_texts)
                 
-                # Start timing
                 start_time = time.time()
                 
-                # Forward pass
                 outputs = self.model(**inputs, labels=inputs["input_ids"])
                 loss = outputs.loss
                 perplexity = torch.exp(loss)
                 
-                # Record metrics
                 batch_time = time.time() - start_time
-                memory_usage = torch.cuda.memory_allocated() / 1024**2  # MB
+                memory_usage = torch.cuda.memory_allocated() / 1024**2
                 
-                # Log individual batch metrics to wandb
+                # Log batch metrics with configuration details
                 wandb.log({
                     "batch_inference_time": batch_time,
                     "batch_inference_memory": memory_usage,
-                    "batch_inference_throughput": self.batch_size / batch_time,
-                    "batch_inference_perplexity": perplexity.item()
+                    "batch_inference_throughput": self.config.batch_size / batch_time,
+                    "batch_inference_perplexity": perplexity.item(),
+                    "batch_size": self.config.batch_size,
+                    "max_length": self.config.max_length,
+                    "use_flash_attention": self.config.use_flash_attention,
+                    "use_quantization": self.config.use_quantization
                 })
                 
                 metrics["inference_time"].append(batch_time)
                 metrics["memory_usage"].append(memory_usage)
-                metrics["throughput"].append(self.batch_size / batch_time)
+                metrics["throughput"].append(self.config.batch_size / batch_time)
                 metrics["perplexity"].append(perplexity.item())
         
         return metrics
     
-    def run_benchmarks(self):
+    def run_benchmarks(self) -> Dict[str, Dict[str, float]]:
         """Run all benchmarks and log results"""
         logger.info("Starting comprehensive benchmark...")
         
-        # Initialize wandb
-        wandb.init(project="gpt2-benchmark", 
-                  config={
-                      "model_name": self.model_name,
-                      "batch_size": self.batch_size,
-                      "max_length": self.max_length
-                  })
+        # Initialize wandb with detailed configuration
+        wandb.init(
+            project="model-benchmark",
+            config={
+                "model_name": self.config.model_name,
+                "use_flash_attention": self.config.use_flash_attention,
+                "use_quantization": self.config.use_quantization,
+                "batch_size": self.config.batch_size,
+                "max_length": self.config.max_length
+            },
+            name=f"{self.config.model_name}_bs{self.config.batch_size}_ml{self.config.max_length}_"
+                f"flash{self.config.use_flash_attention}_quant{self.config.use_quantization}"
+        )
         
-        # Run benchmarks
         training_metrics = self.benchmark_training()
         inference_metrics = self.benchmark_inference()
         
-        # Calculate and log statistics
         results = {
             "training": {
                 "avg_time": np.mean(training_metrics["training_time"]),
@@ -191,10 +258,15 @@ class GPT2Benchmark:
             }
         }
         
-        # Log final statistics to wandb
-        wandb.log(results)
+        # Log final results with configuration details
+        wandb.log({
+            **results,
+            "batch_size": self.config.batch_size,
+            "max_length": self.config.max_length,
+            "use_flash_attention": self.config.use_flash_attention,
+            "use_quantization": self.config.use_quantization
+        })
         
-        # Print results
         logger.info("\nBenchmark Results:")
         logger.info("Training:")
         logger.info(f"Average time per batch: {results['training']['avg_time']:.4f} ± {results['training']['std_time']:.4f} seconds")
@@ -212,6 +284,44 @@ class GPT2Benchmark:
         wandb.finish()
         return results
 
+def generate_configurations() -> List[ModelConfig]:
+    """Generate all possible configurations for benchmarking"""
+    model_names = ["gpt2"]
+    batch_sizes = [8,16,32]
+    max_lengths = [128]
+    flash_options = [False, True]
+    quant_options = [False, True]
+    
+    configs = []
+    for model_name, batch_size, max_length, use_flash, use_quant in itertools.product(
+        model_names, batch_sizes, max_lengths, flash_options, quant_options
+    ):
+        configs.append(ModelConfig(
+            model_name=model_name,
+            batch_size=batch_size,
+            max_length=max_length,
+            use_flash_attention=use_flash,
+            use_quantization=use_quant
+        ))
+    
+    return configs
+
+def run_all_benchmarks():
+    """Run benchmarks for all model configurations"""
+    configs = generate_configurations()
+    all_results = {}
+    
+    for config in configs:
+        logger.info(f"\nRunning benchmark for config: {config}")
+        benchmark = ModelBenchmark(config)
+        results = benchmark.run_benchmarks()
+        config_key = (
+            f"{config.model_name}_bs{config.batch_size}_ml{config.max_length}_"
+            f"flash{config.use_flash_attention}_quant{config.use_quantization}"
+        )
+        all_results[config_key] = results
+    
+    return all_results
+
 if __name__ == "__main__":
-    benchmark = GPT2Benchmark()
-    results = benchmark.run_benchmarks() 
+    all_results = run_all_benchmarks() 
