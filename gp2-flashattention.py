@@ -85,16 +85,6 @@ class GPT2FlashBenchmark:
             batch_time = time.time() - start_time
             memory_usage = torch.cuda.memory_allocated() / 1024**2  # MB
             
-            # Log individual batch metrics to wandb (commented out)
-            """
-            wandb.log({
-                "batch_training_time": batch_time,
-                "batch_memory_usage": memory_usage,
-                "batch_throughput": self.batch_size / batch_time,
-                "batch_loss": loss.item(),
-                "batch_perplexity": perplexity.item()
-            })
-            """
             
             metrics["training_time"].append(batch_time)
             metrics["memory_usage"].append(memory_usage)
@@ -148,15 +138,6 @@ class GPT2FlashBenchmark:
                 batch_time = time.time() - start_time
                 memory_usage = torch.cuda.memory_allocated() / 1024**2  # MB
                 
-                # Log individual batch metrics to wandb (commented out)
-                """
-                wandb.log({
-                    "batch_inference_time": batch_time,
-                    "batch_inference_memory": memory_usage,
-                    "batch_inference_throughput": self.batch_size / batch_time,
-                    "batch_inference_perplexity": perplexity.item()
-                })
-                """
                 
                 metrics["inference_time"].append(batch_time)
                 metrics["memory_usage"].append(memory_usage)
@@ -169,15 +150,6 @@ class GPT2FlashBenchmark:
         """Run all benchmarks and log results"""
         logger.info("Starting comprehensive benchmark for flash attention model...")
         
-        # Initialize wandb (commented out)
-        """
-        wandb.init(project="gpt2-benchmark-flash", 
-                   config={
-                       "model_name": self.model_name,
-                       "batch_size": self.batch_size,
-                       "max_length": self.max_length
-                   })
-        """
         
         # Run benchmarks with the provided number of batches
         training_metrics = self.benchmark_training(num_batches=num_batches)
@@ -209,12 +181,6 @@ class GPT2FlashBenchmark:
             }
         }
         
-        # Log final statistics to wandb (commented out)
-        """
-        wandb.log(results)
-        logger.info("Benchmark Results:")
-        """
-        
         # Print results to console
         logger.info("\nBenchmark Results (Flash Attention Model):")
         logger.info("Training:")
@@ -230,10 +196,6 @@ class GPT2FlashBenchmark:
         logger.info(f"Average throughput: {results['inference']['avg_throughput']:.2f} ± {results['inference']['std_throughput']:.2f} samples/second")
         logger.info(f"Average perplexity: {results['inference']['avg_perplexity']:.4f} ± {results['inference']['std_perplexity']:.4f}")
         
-        # Finalize wandb (commented out)
-        """
-        wandb.finish()
-        """
         return results
 
 benchmark = GPT2FlashBenchmark()
