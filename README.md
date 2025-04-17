@@ -1,42 +1,64 @@
-# High-Performance-Learning
+# GPT-2 Baseline Benchmarking
 
-## wav2vec
+This directory contains code for benchmarking the standard GPT-2 model with vanilla attention mechanism. The benchmarking system measures various performance metrics including training time, inference latency, memory usage, and throughput.
 
-### aihwkit
-PerformanceEvaluator.run_comparison(num_samples=20) can run successfully. However, the analog model is slower than original model. ~
+## Setup
 
-### Quantization
-The project implements Post-Training Quantization (PTQ) for speech recognition models to improve inference efficiency.
+1. Create a virtual environment (recommended):
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-#### Quantization Implementation
-- **Method**: Post-Training Quantization (PTQ)
-- **Framework**: Custom implementation with PyTorch hooks
-- **Quantization Bits**: 16-bit weights and 16-bit activations
-- **Calibration**: Uses a subset of the dataset to determine optimal quantization parameters
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-#### Performance Results
-Quantizing a Wav2Vec2 model achieves:
-- **Accuracy**: Minimal WER (Word Error Rate) increase compared to full-precision model
-- **Model Size**: ~50% reduction in model size (from 32-bit to 16-bit precision)
-- **Inference Speed**: Comparable to the original model, with minimal overhead
+3. Set up Weights & Biases (optional but recommended for tracking experiments):
+```bash
+wandb login
+```
 
-#### Text Prediction Comparison
-Examples showing the accuracy of quantized model compared to the original:
+## Usage
 
-| Sample | Reference | Original Model | Quantized Model (16-bit) |
-|--------|-----------|---------------|--------------------------|
-| 1 | "THE OLD MAN WAS BENT INTO A CAPITAL C" | "THE OLD MAN WAS BENT INTO A CAPITAL C" | "THE OLD MAN WAS BENT INTO A CAPITAL C" |
-| 2 | "HE STRUCK A MATCH AND LIGHTED HIS CIGARETTE" | "HE STRUCK A MATCH AND LIGHTED HIS CIGARETTE" | "HE STRUCK A MATCH AND LIGHTED HIS CIGARETTE" |
+Run the benchmark:
+```bash
+python benchmark.py
+```
 
-INFO:__main__:Original Model:
-INFO:__main__:  WER: 0.1610
-INFO:__main__:  Avg Inference Time: 0.1284s
-INFO:__main__:
-Quantized Model:
-INFO:__main__:  WER: 0.1610
-INFO:__main__:  Avg Inference Time: 0.0132s
-INFO:__main__:
-Differences:
-INFO:__main__:  WER Difference: 0.0000
-INFO:__main__:  Time Difference: -0.1151s
-INFO:__main__:  Speedup: 9.70x
+The script will:
+1. Load the GPT-2 model and tokenizer
+2. Load the Wikitext-2 dataset
+3. Run training and inference benchmarks
+4. Log metrics to Weights & Biases (if configured)
+5. Print detailed performance statistics
+
+## Metrics Tracked
+
+### Training Metrics
+- Training time per batch
+- GPU memory usage
+- Throughput (samples/second)
+- Standard deviations for all metrics
+
+### Inference Metrics
+- Inference latency per batch
+- GPU memory usage
+- Throughput (samples/second)
+- Standard deviations for all metrics
+
+## Configuration
+
+The benchmark can be configured by modifying the `GPT2Benchmark` class initialization parameters:
+- `model_name`: GPT-2 model variant (default: "gpt2")
+- `batch_size`: Batch size for training/inference (default: 8)
+- `max_length`: Maximum sequence length (default: 128)
+
+## Results
+
+Results are logged to:
+1. Console output with detailed statistics
+2. Weights & Biases dashboard (if configured)
+
+The results include mean and standard deviation for all metrics, providing a comprehensive view of the model's performance characteristics. 
