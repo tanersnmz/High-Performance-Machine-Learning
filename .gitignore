@@ -1,0 +1,102 @@
+# Python相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+ENV/
+env/
+.env/
+.venv/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# 模型和数据文件
+*.h5
+*.pkl
+*.model
+*.pt
+*.pth
+*.bin
+*.onnx
+data/
+datasets/
+models/
+pretrained_models/
+checkpoints/
+results/
+outputs/
+logs/
+
+# IDE和编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.spyderproject
+.spyproject
+.ropeproject
+
+# 临时文件
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+.tox/
+.nox/
+*.log
+tmp/
+temp/
+
+# 特定于项目的设置
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+settings.json
+config.ini
+
+# 其他
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# OS生成的文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 

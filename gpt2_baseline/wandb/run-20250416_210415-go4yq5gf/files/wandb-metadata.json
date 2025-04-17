@@ -1,0 +1,42 @@
+{
+  "os": "Linux-5.10.0-32-cloud-amd64-x86_64-with-glibc2.31",
+  "python": "CPython 3.10.15",
+  "startedAt": "2025-04-16T21:04:15.223973Z",
+  "program": "/home/ym3064/High-Performance-Machine-Learning/gpt2_baseline/benchmark.py",
+  "codePath": "gpt2_baseline/benchmark.py",
+  "git": {
+    "remote": "https://github.com/tanersnmz/High-Performance-Machine-Learning.git",
+    "commit": "9aa750aaea40bfab83c7f54f080c49ce6dc4a246"
+  },
+  "email": "ym3064@columbia.edu",
+  "root": "/home/ym3064/High-Performance-Machine-Learning/gpt2_baseline",
+  "host": "hpml-20250414-140811",
+  "executable": "/opt/conda/bin/python",
+  "codePathLocal": "benchmark.py",
+  "cpu_count": 4,
+  "cpu_count_logical": 8,
+  "gpu": "Tesla T4",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "105426538496",
+      "used": "42017161216"
+    }
+  },
+  "memory": {
+    "total": "31557124096"
+  },
+  "cpu": {
+    "count": 4,
+    "countLogical": 8
+  },
+  "gpu_nvidia": [
+    {
+      "name": "Tesla T4",
+      "memoryTotal": "16106127360",
+      "cudaCores": 2560,
+      "architecture": "Turing"
+    }
+  ],
+  "cudaVersion": "12.4"
+}
