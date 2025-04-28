@@ -1,5 +1,5 @@
 import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, GPT2Config
 from datasets import load_dataset
 import time
 import wandb
@@ -9,9 +9,42 @@ import logging
 from typing import Dict, List, Optional, Union, Tuple
 from dataclasses import dataclass
 import itertools
+import platform
+import sys
+from datetime import datetime
 
-logging.basicConfig(level=logging.INFO)
+# Set up logging to both file and console
+log_filename = f"benchmark_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_filename),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 logger = logging.getLogger(__name__)
+
+# Check system and CUDA availability
+system_info = [
+    f"Python version: {platform.python_version()}",
+    f"PyTorch version: {torch.__version__}",
+    f"CUDA available: {torch.cuda.is_available()}"
+]
+
+if torch.cuda.is_available():
+    system_info.extend([
+        f"CUDA version: {torch.version.cuda}",
+        f"GPU model: {torch.cuda.get_device_name(0)}",
+        f"Number of GPUs: {torch.cuda.device_count()}",
+        f"Available GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB"
+    ])
+else:
+    system_info.append("Warning: FlashAttention requires CUDA GPU support. CPU execution will not work.")
+
+# Log system information
+for info in system_info:
+    logger.info(info)
 
 @dataclass
 class ModelConfig:
@@ -26,25 +59,35 @@ class ModelBenchmark:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.config = config
         
+        # Log configuration
+        logger.info(f"\nModel Configuration:")
+        logger.info(f"Model name: {config.model_name}")
+        logger.info(f"Use Flash Attention: {config.use_flash_attention}")
+        logger.info(f"Use Quantization: {config.use_quantization}")
+        logger.info(f"Batch size: {config.batch_size}")
+        logger.info(f"Max length: {config.max_length}")
+        
         # Initialize model and tokenizer
-        logger.info(f"Loading {config.model_name} model and tokenizer...")
+        logger.info(f"\nLoading {config.model_name} model and tokenizer...")
         self.tokenizer = GPT2Tokenizer.from_pretrained(config.model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         
-        # Load model with appropriate configuration
-        model_kwargs = {}
+        # Load configuration
+        model_config = GPT2Config.from_pretrained(config.model_name)
         if config.use_flash_attention:
-            model_kwargs["use_flash_attention_2"] = True
-            
-        self.model = AutoModelForCausalLM.from_pretrained(
+            model_config.use_flash_attention = True
+            logger.info("Flash Attention enabled in model config")
+        
+        # Load model with configuration
+        self.model = GPT2LMHeadModel.from_pretrained(
             config.model_name,
-            **model_kwargs
+            config=model_config
         ).to(self.device)
         
         if config.use_quantization:
-            self.model = torch.quantization.quantize_dynamic(
-                self.model, {torch.nn.Linear}, dtype=torch.qint8
-            )
+            logger.info("Applying quantization to model...")
+            self.model = self.model.half()
+            logger.info("Model converted to FP16")
         
         # Load dataset
         logger.info("Loading dataset...")
@@ -244,8 +287,8 @@ class ModelBenchmark:
 def generate_configurations() -> List[ModelConfig]:
     """Generate all possible configurations for benchmarking"""
     model_names = ["gpt2"]
-    batch_sizes = [4, 8, 16, 32]
-    max_lengths = [64, 128, 256, 512]
+    batch_sizes = [8,16,32]
+    max_lengths = [128]
     flash_options = [False, True]
     quant_options = [False, True]
     

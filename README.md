@@ -1,42 +1,95 @@
-# High-Performance-Learning
+# GPT-2 Benchmarking Suite
 
-## wav2vec
+This repository provides a comprehensive benchmarking pipeline for the GPT-2 language model, supporting optional FlashAttention, quantization (FP16), and knowledge distillation (planned). It measures training and inference performance across multiple configurations.
 
-### aihwkit
-PerformanceEvaluator.run_comparison(num_samples=20) can run successfully. However, the analog model is slower than original model. ~
+---
 
-### Quantization
-The project implements Post-Training Quantization (PTQ) for speech recognition models to improve inference efficiency.
+## 🔧 Setup
 
-#### Quantization Implementation
-- **Method**: Post-Training Quantization (PTQ)
-- **Framework**: Custom implementation with PyTorch hooks
-- **Quantization Bits**: 16-bit weights and 16-bit activations
-- **Calibration**: Uses a subset of the dataset to determine optimal quantization parameters
+1. **Create a virtual environment (recommended):**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-#### Performance Results
-Quantizing a Wav2Vec2 model achieves:
-- **Accuracy**: Minimal WER (Word Error Rate) increase compared to full-precision model
-- **Model Size**: ~50% reduction in model size (from 32-bit to 16-bit precision)
-- **Inference Speed**: Comparable to the original model, with minimal overhead
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-#### Text Prediction Comparison
-Examples showing the accuracy of quantized model compared to the original:
+3. **(Optional) Login to Weights & Biases:**
+   ```bash
+   wandb login
+   ```
 
-| Sample | Reference | Original Model | Quantized Model (16-bit) |
-|--------|-----------|---------------|--------------------------|
-| 1 | "THE OLD MAN WAS BENT INTO A CAPITAL C" | "THE OLD MAN WAS BENT INTO A CAPITAL C" | "THE OLD MAN WAS BENT INTO A CAPITAL C" |
-| 2 | "HE STRUCK A MATCH AND LIGHTED HIS CIGARETTE" | "HE STRUCK A MATCH AND LIGHTED HIS CIGARETTE" | "HE STRUCK A MATCH AND LIGHTED HIS CIGARETTE" |
+---
 
-INFO:__main__:Original Model:
-INFO:__main__:  WER: 0.1610
-INFO:__main__:  Avg Inference Time: 0.1284s
-INFO:__main__:
-Quantized Model:
-INFO:__main__:  WER: 0.1610
-INFO:__main__:  Avg Inference Time: 0.0132s
-INFO:__main__:
-Differences:
-INFO:__main__:  WER Difference: 0.0000
-INFO:__main__:  Time Difference: -0.1151s
-INFO:__main__:  Speedup: 9.70x
+## 🚀 Usage
+
+To run the benchmark:
+```bash
+python benchmark.py
+```
+
+The script will:
+- Load the GPT-2 model and tokenizer
+- Load the WikiText-2 dataset
+- Run training and inference benchmarks
+- Log metrics to Weights & Biases (if enabled)
+- Print detailed performance summaries to console
+
+---
+
+## 📊 Metrics Tracked
+
+### Training
+- Time per batch (seconds)
+- GPU memory usage (MB)
+- Throughput (samples/second)
+- Standard deviation for all metrics
+
+### Inference
+- Latency per batch (seconds)
+- GPU memory usage (MB)
+- Throughput (samples/second)
+- Standard deviation for all metrics
+
+---
+
+## ⚙️ Configuration
+
+You can modify benchmarking parameters in the `ModelConfig` class:
+
+```python
+ModelConfig(
+    model_name="gpt2",
+    batch_size=8,
+    max_length=128,
+    use_flash_attention=False,
+    use_quantization=False
+)
+```
+
+---
+
+## 📁 Output
+
+Results are logged to:
+- **Console**: Clean summary of each experiment
+- **WandB Dashboard** (optional): Rich tracking with graphs and tables
+
+---
+
+## 🧠 Features
+
+- ✅ Supports FlashAttention (Hugging Face native config)
+- ✅ FP16 quantization (`model.half()`)
+- 🔜 Knowledge distillation (coming after mid-point)
+- 📈 Full profiling with wandb + PyTorch memory tracking
+
+---
+
+## 📌 Notes
+
+- Current quantization is a naive FP16 cast using `model.half()`. We plan to implement proper post-training or QAT methods later.
+- FlashAttention shows stronger benefits at higher batch sizes and longer sequences.
