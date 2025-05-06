@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from distillation_eval import DistillationTrainer
+from distillation.distillation_eval import DistillationTrainer
 import wandb
 import json
 import os
