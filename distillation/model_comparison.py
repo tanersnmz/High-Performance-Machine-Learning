@@ -60,6 +60,27 @@ class ModelComparator:
         )
         return {k: v.to(self.device) for k, v in encodings.items()}
     
+    def perform_warmup(self, model: GPT2LMHeadModel, dataloader: torch.utils.data.DataLoader, num_warmup_batches: int = 3):
+        """Perform warmup iterations to avoid cold start timing issues"""
+        logger.info(f"Performing {num_warmup_batches} warmup batches...")
+        with torch.no_grad():
+            for i, batch in enumerate(dataloader):
+                if i >= num_warmup_batches:
+                    break
+                    
+                texts = [text for text in batch if text.strip()]
+                if not texts:
+                    continue
+                    
+                inputs = self.prepare_batch(texts)
+                _ = model(**inputs, labels=inputs["input_ids"])
+                
+        # Clear CUDA cache after warmup
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            
+        logger.info("Warmup completed")
+    
     def evaluate_model(
         self,
         model: GPT2LMHeadModel,
@@ -140,6 +161,13 @@ class ModelComparator:
             shuffle=False
         )
         
+        # Create separate dataloaders for warmup and evaluation
+        warmup_dataloader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=True  # Use different samples for warmup
+        )
+        
         # Initialize wandb
         wandb.init(
             project="gpt2-model-comparison",
@@ -150,14 +178,22 @@ class ModelComparator:
             }
         )
         
-        # Evaluate each model
+        # Perform a general GPU warmup before any evaluations
+        logger.info("Performing general GPU warmup...")
+        # Run a few batches through any model to warm up the GPU
+        self.perform_warmup(self.gpt2, warmup_dataloader)
+        
+        # Evaluate each model with specific warmup for each
         logger.info("Evaluating GPT-2...")
+        self.perform_warmup(self.gpt2, warmup_dataloader)
         gpt2_results = self.evaluate_model(self.gpt2, dataloader, "GPT-2")
         
         logger.info("Evaluating GPT-2 Medium...")
+        self.perform_warmup(self.gpt2_medium, warmup_dataloader)
         gpt2_medium_results = self.evaluate_model(self.gpt2_medium, dataloader, "GPT-2 Medium")
         
         logger.info("Evaluating Distilled Model...")
+        self.perform_warmup(self.distilled, warmup_dataloader)
         distilled_results = self.evaluate_model(self.distilled, dataloader, "Distilled")
         
         # Log results to wandb in a comparative way
