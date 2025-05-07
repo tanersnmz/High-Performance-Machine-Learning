@@ -160,18 +160,128 @@ class ModelComparator:
         logger.info("Evaluating Distilled Model...")
         distilled_results = self.evaluate_model(self.distilled, dataloader, "Distilled")
         
-        # Log results to wandb
-        for model_name, results in [
-            ("GPT-2", gpt2_results),
-            ("GPT-2 Medium", gpt2_medium_results),
-            ("Distilled", distilled_results)
-        ]:
+        # Log results to wandb in a comparative way
+        # Create comparison tables and charts
+        comparison_data = {
+            "Model": ["GPT-2", "GPT-2 Medium", "Distilled"],
+            "Loss": [
+                gpt2_results["avg_loss"],
+                gpt2_medium_results["avg_loss"],
+                distilled_results["avg_loss"]
+            ],
+            "Perplexity": [
+                gpt2_results["avg_perplexity"],
+                gpt2_medium_results["avg_perplexity"],
+                distilled_results["avg_perplexity"]
+            ],
+            "Inference Time (s)": [
+                gpt2_results["avg_inference_time"],
+                gpt2_medium_results["avg_inference_time"],
+                distilled_results["avg_inference_time"]
+            ],
+            "Memory Usage (MB)": [
+                gpt2_results["avg_memory_usage"],
+                gpt2_medium_results["avg_memory_usage"],
+                distilled_results["avg_memory_usage"]
+            ]
+        }
+        
+        # Log each metric individually for comparison charts
+        for i, model_name in enumerate(comparison_data["Model"]):
             wandb.log({
-                f"{model_name}_avg_loss": results["avg_loss"],
-                f"{model_name}_avg_perplexity": results["avg_perplexity"],
-                f"{model_name}_avg_inference_time": results["avg_inference_time"],
-                f"{model_name}_avg_memory_usage": results["avg_memory_usage"]
+                "loss_comparison": wandb.Table(
+                    columns=["Model", "Loss"],
+                    data=[[model, loss] for model, loss in zip(comparison_data["Model"], comparison_data["Loss"])]
+                ),
+                "perplexity_comparison": wandb.Table(
+                    columns=["Model", "Perplexity"],
+                    data=[[model, ppl] for model, ppl in zip(comparison_data["Model"], comparison_data["Perplexity"])]
+                ),
+                "inference_time_comparison": wandb.Table(
+                    columns=["Model", "Inference Time (s)"],
+                    data=[[model, time] for model, time in zip(comparison_data["Model"], comparison_data["Inference Time (s)"])]
+                ),
+                "memory_usage_comparison": wandb.Table(
+                    columns=["Model", "Memory Usage (MB)"],
+                    data=[[model, mem] for model, mem in zip(comparison_data["Model"], comparison_data["Memory Usage (MB)"])]
+                ),
             })
+        
+        # Create a summary table with all metrics
+        wandb.log({
+            "model_comparison_summary": wandb.Table(
+                columns=["Model", "Loss", "Perplexity", "Inference Time (s)", "Memory Usage (MB)"],
+                data=[
+                    [
+                        comparison_data["Model"][i],
+                        comparison_data["Loss"][i],
+                        comparison_data["Perplexity"][i],
+                        comparison_data["Inference Time (s)"][i],
+                        comparison_data["Memory Usage (MB)"][i]
+                    ] for i in range(len(comparison_data["Model"]))
+                ]
+            )
+        })
+        
+        # Log bar charts for easy comparison
+        for metric in ["Loss", "Perplexity", "Inference Time (s)", "Memory Usage (MB)"]:
+            wandb.log({
+                f"{metric}_bar_chart": wandb.plot.bar(
+                    wandb.Table(
+                        columns=["Model", metric],
+                        data=[[model, value] for model, value in zip(comparison_data["Model"], comparison_data[metric])]
+                    ),
+                    "Model",
+                    metric,
+                    title=f"Comparison of {metric} Across Models"
+                )
+            })
+        
+        # Log relative performance to GPT-2 (as percentages)
+        relative_performance = {
+            "Model": ["GPT-2", "GPT-2 Medium", "Distilled"],
+            "Relative Loss (%)": [
+                100.0,  # GPT-2 baseline (100%)
+                (gpt2_medium_results["avg_loss"] / gpt2_results["avg_loss"]) * 100,
+                (distilled_results["avg_loss"] / gpt2_results["avg_loss"]) * 100
+            ],
+            "Relative Perplexity (%)": [
+                100.0,  # GPT-2 baseline (100%)
+                (gpt2_medium_results["avg_perplexity"] / gpt2_results["avg_perplexity"]) * 100,
+                (distilled_results["avg_perplexity"] / gpt2_results["avg_perplexity"]) * 100
+            ],
+            "Relative Inference Time (%)": [
+                100.0,  # GPT-2 baseline (100%)
+                (gpt2_medium_results["avg_inference_time"] / gpt2_results["avg_inference_time"]) * 100,
+                (distilled_results["avg_inference_time"] / gpt2_results["avg_inference_time"]) * 100
+            ],
+            "Relative Memory Usage (%)": [
+                100.0,  # GPT-2 baseline (100%)
+                (gpt2_medium_results["avg_memory_usage"] / gpt2_results["avg_memory_usage"]) * 100,
+                (distilled_results["avg_memory_usage"] / gpt2_results["avg_memory_usage"]) * 100
+            ]
+        }
+        
+        wandb.log({
+            "relative_performance": wandb.Table(
+                columns=[
+                    "Model", 
+                    "Relative Loss (%)", 
+                    "Relative Perplexity (%)", 
+                    "Relative Inference Time (%)", 
+                    "Relative Memory Usage (%)"
+                ],
+                data=[
+                    [
+                        relative_performance["Model"][i],
+                        relative_performance["Relative Loss (%)"][i],
+                        relative_performance["Relative Perplexity (%)"][i],
+                        relative_performance["Relative Inference Time (%)"][i],
+                        relative_performance["Relative Memory Usage (%)"][i]
+                    ] for i in range(len(relative_performance["Model"]))
+                ]
+            )
+        })
         
         # Print comparison table
         logger.info("\nModel Comparison Results:")

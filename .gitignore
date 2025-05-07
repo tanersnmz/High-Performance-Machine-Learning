@@ -1,4 +1,4 @@
-# Python相关
+# Python related
 __pycache__/
 *.py[cod]
 *$py.class
@@ -21,7 +21,7 @@ wheels/
 .installed.cfg
 *.egg
 
-# 虚拟环境
+# Virtual environments
 venv/
 ENV/
 env/
@@ -34,7 +34,7 @@ venv.bak/
 .ipynb_checkpoints
 *.ipynb
 
-# 模型和数据文件
+# Model and data files
 *.h5
 *.pkl
 *.model
@@ -50,10 +50,8 @@ checkpoints/
 results/
 outputs/
 logs/
-wandb/
-.wandb/
 
-# IDE和编辑器
+# IDEs and editors
 .idea/
 .vscode/
 *.swp
@@ -66,7 +64,7 @@ wandb/
 .spyproject
 .ropeproject
 
-# 临时文件
+# Temporary files
 .coverage
 .coverage.*
 htmlcov/
@@ -77,7 +75,7 @@ coverage/
 tmp/
 temp/
 
-# 特定于项目的设置
+# Project specific settings
 .env
 .env.local
 .env.development.local
@@ -86,7 +84,7 @@ temp/
 settings.json
 config.ini
 
-# 其他
+# Others
 *.bak
 *.tmp
 *.temp
@@ -94,7 +92,7 @@ config.ini
 *.swo
 *~
 
-# OS生成的文件
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
