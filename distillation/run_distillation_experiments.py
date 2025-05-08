@@ -151,7 +151,7 @@ def main():
     # Initialize trainer
     trainer = ProgressiveDistillationTrainer(
         num_epochs=50,  # Train for 10 epochs total
-        output_dir="progressive_distillation"
+        output_dir="distilled_model"
     )
     
     # Run training with checkpoints

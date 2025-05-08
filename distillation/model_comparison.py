@@ -19,7 +19,7 @@ class ModelComparator:
         self,
         gpt2_model_name: str = "gpt2",
         gpt2_medium_model_name: str = "gpt2-medium",
-        distilled_model_path: str = "progressive_distillation",
+        distilled_model_path: str = "distilled_model/epoch_30",
         batch_size: int = 4,
         max_length: int = 128,
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
