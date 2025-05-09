@@ -1,6 +1,10 @@
 # High-Performance GPT2 Optimization
 
 This repository provides a comprehensive optimization framework for the GPT-2 language model, integrating multiple model compression and acceleration techniques including Knowledge Distillation, LoRA (Low-Rank Adaptation), and Weight Pruning, alongside FlashAttention and quantization support. It systematically measures training and inference performance across different configurations.
+## Team Information
+- **Members**:
+  - Taner (tgs2126)
+  - Yifan (ym3064)
 
 ## 🧪 Experimental Setup
 
@@ -26,7 +30,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 | **4 · INT4 NF4 Quantization**      | Load weights in 4-bit (bitsandbytes) with double-quant + FP16 compute. | Cuts model memory by**4-5×** and speeds up GEMM kernels.              |
 | **5 · FlashAttention 2**           | Replace vanilla soft-max attention with bandwidth-optimal kernels.     | 2-3× faster attention + lower activation RAM.                         |
 
-### End-to-end Gains (Distilled → LoRA → Prune → INT4 + Flash)
+## End-to-end RESULTS (Distilled → LoRA → Prune → INT4 + Flash)
 
 * **Training VRAM:** ↓ 66 %
 * **Inference VRAM:** ↓ 27 %
@@ -58,7 +62,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 ## 📁 Project Structure
 
 ~~~plaintext
-├── Distillation-with-Lora-and-Pruning.ipynb  # Knowledge Distillation, LoRA and Pruning experiments
+├── Distillation-with-Lora-and-Pruning.ipynb  # LoRA and Pruning experiments for Knowledge Distilled model 
 ├── gpt2base-lora and pruning.ipynb          # LoRA and Pruning experiments for base model GPT2, just for experiment purposes, not used in final code
 ├── Quantization.ipynb                       # Quantization experiments
 ├── Quantization-with-Flash-Attention.ipynb  # Quantization with FlashAttention
@@ -81,7 +85,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 1. First, run the distillation experiments to create the distilled model:
 
    ~~~bash
-   python distillation/run\_distillation\_experiments.py
+   python distillation/run_distillation_experiments.py
    ~~~
 
    This script performs knowledge distillation from GPT-2-medium (teacher) to GPT-2 (student), creating checkpoints at specified epochs (5, 10, 15, 20, 25, 30, 35, 40, 45, 50). The distilled model will be saved in the distilled\_model directory.
@@ -141,7 +145,7 @@ The individual URLs for results:
 3. Distilled Model, GPT2 and GPT2 Medium Comparison: https://wandb.ai/hpml_final_project/gpt2-model-comparison
 4. LoRA and Pruning Experiments: https://wandb.ai/hpml_final_project/lora-pruning-comparison-dstill-3
 5. Quantization Experiments without Flash Attention: https://wandb.ai/hpml_final_project/quantization-impact-comparison
-6. Flash-Attention Experiments with Flash Attention：https://wandb.ai/hpml_final_project/Quantized%20and%20Flash%20Enabled
+6. Quantization Experiments with Flash Attention：https://wandb.ai/hpml_final_project/Quantized%20and%20Flash%20Enabled
 
 ## 💾 Model Weights
 
@@ -150,6 +154,4 @@ The individual URLs for results:
 All our optimized models are available for download:
 
 1. Distilled Model (GPT2 distilled from GPT2-Medium): https://drive.google.com/drive/folders/1Uf_C71Goa9yB8zThMvuhkkE2AU11EUTX?usp=drive_link
-2. Distilled Model with LoRA and Pruning:
-
-   https://drive.google.com/drive/folders/1I6lJEA2djmnz7UKGxnuOfxy279jO5Gqv?usp=drive_link
+2. Distilled Model with LoRA and Pruning: https://drive.google.com/drive/folders/1I6lJEA2djmnz7UKGxnuOfxy279jO5Gqv?usp=drive_link
