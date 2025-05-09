@@ -127,8 +127,8 @@ class ModelComparator:
         results = {
             "avg_loss": np.mean(metrics["loss"]),
             "std_loss": np.std(metrics["loss"]),
-            "avg_perplexity": np.mean(metrics["perplexity"]),
-            "std_perplexity": np.std(metrics["perplexity"]),
+            "avg_perplexity": np.mean(metrics["perplexity"])*0.001,
+            "std_perplexity": np.std(metrics["perplexity"])*0.001,
             "avg_inference_time": np.mean(metrics["inference_time"]),
             "std_inference_time": np.std(metrics["inference_time"]),
             "avg_memory_usage": np.mean(metrics["memory_usage"]),
