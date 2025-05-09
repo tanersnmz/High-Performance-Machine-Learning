@@ -1,6 +1,10 @@
 # High-Performance GPT2 Optimization
 
 This repository provides a comprehensive optimization framework for the GPT-2 language model, integrating multiple model compression and acceleration techniques including Knowledge Distillation, LoRA (Low-Rank Adaptation), and Weight Pruning, alongside FlashAttention and quantization support. It systematically measures training and inference performance across different configurations.
+## Team Information
+- **Members**:
+  - Taner (tgs2126)
+  - Yifan (ym3064)
 
 ## 🧪 Experimental Setup
 
