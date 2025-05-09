@@ -25,7 +25,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 | **4 · INT4 NF4 Quantization**      | Load weights in 4-bit (bitsandbytes) with double-quant + FP16 compute.  | Cuts model memory by **4-5×** and speeds up GEMM kernels.              |
 | **5 · FlashAttention 2**           | Replace vanilla soft-max attention with bandwidth-optimal kernels.      | 2-3× faster attention + lower activation RAM.                          |
 
-### End-to-end Gains (Distilled → LoRA → Prune → INT4 + Flash)
+## End-to-end RESULTS (Distilled → LoRA → Prune → INT4 + Flash)
 
 * **Training VRAM:** ↓ 66 %
 * **Inference VRAM:** ↓ 27 %
