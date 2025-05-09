@@ -1,3 +1,17 @@
-transformers>=4.51.1
-aihwkit>=0.6.0 
-datasets>=3.5.0
+# Core deep-learning stack
+torch
+transformers
+datasets
+peft
+bitsandbytes
+flash-attn
+
+# Experiment & logging
+wandb
+tqdm
+pandas
+matplotlib
+
+# Utilities
+scipy
+scikit-learn
