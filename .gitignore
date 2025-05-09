@@ -32,7 +32,7 @@ venv.bak/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-*.ipynb
+
 
 # Model and data files
 *.h5
