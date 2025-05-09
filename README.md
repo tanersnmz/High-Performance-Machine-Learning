@@ -149,4 +149,4 @@ The individual URLs for results:
 All our optimized models are available for download:
 
 1. Distilled Model (GPT2 distilled from GPT2-Medium): https://drive.google.com/drive/folders/1Uf_C71Goa9yB8zThMvuhkkE2AU11EUTX?usp=drive_link
-2. Distilled Model with LoRA and Pruning:
+2. Distilled Model with LoRA and Pruning: https://drive.google.com/drive/folders/1I6lJEA2djmnz7UKGxnuOfxy279jO5Gqv?usp=drive_link
