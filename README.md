@@ -120,6 +120,11 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 |               | **Throughput**      | Samples served per second                        | samples / s    | `batch_inference_throughput` |
 |               | **Perplexity**      | exp(loss) on validation set                      | –              | `batch_inference_perplexity` |
 |               | **± StdDev**        | Variation across all recorded batches            | same as metric | calculated offline           |
+| **Metrics Used For Comparisons** | **Fwd Latency**    | Pure forward-pass time per *sample*               | **ms**      | `fwd_pass_latency_ms` |
+|               | **Fwd Throughput** | Forward samples served per second                 | samples / s | `fwd_pass_throughput` |
+|               | **Gen Latency**    | *generate()* time per sample (incl. 5 new tokens) | **ms**      | `gen_latency_ms`      |
+|               | **Gen Throughput** | Generation samples per second                     | samples / s | `gen_throughput`      |
+
 
 
 ## 📈 Experimental Results
