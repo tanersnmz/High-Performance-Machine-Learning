@@ -58,11 +58,11 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 
 ~~~plaintext
 ├── Distillation-with-Lora-and-Pruning.ipynb  # Knowledge Distillation, LoRA and Pruning experiments
-├── gpt2base-lora and pruning.ipynb          # LoRA and Pruning experiments for base model GPT2
+├── gpt2base-lora and pruning.ipynb          # LoRA and Pruning experiments for base model GPT2, just for experiment purposes, not used in final code
 ├── Quantization.ipynb                       # Quantization experiments
 ├── Quantization-with-Flash-Attention.ipynb  # Quantization with FlashAttention
-├── gpt2-flashattention.py                   # FlashAttention implementation
-├── gpt2-flashAttention-newmetrics.py       # Enhanced metrics for FlashAttention
+├── gpt2-flashattention.py                   # FlashAttention implementation, just for experiment purposes, not used in final code
+├── gpt2-flashAttention-newmetrics.py       # Enhanced metrics for FlashAttention, just for experiment purposes, not used in final code
 ├── distillation/                           # Knowledge distillation implementations
 │   ├── model_comparison.py                 # Compare different model configurations
 │   ├── run_distillation_experiments.py     # Run distillation experiments
