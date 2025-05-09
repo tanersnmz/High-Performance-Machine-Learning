@@ -33,7 +33,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 * **Inference Latency:** -62 % (fwd) | -30 % (gen)
 * **Quality hit:** Δ PPL ≈ +0.9 (7.57 → 8.46)
 
-> **Goal:** put *full-pipeline* GPT-2 fine-tuning & serving on 8 GB laptop-class GPUs without noticeable quality loss.
+> **Goal:** put *full-pipeline* GPT-2 fine-tuning & serving on 6 GB laptop-class GPUs without noticeable quality loss.
 
 ## 🔧 Setup
 
@@ -58,11 +58,10 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 
 ~~~plaintext
 ├── Distillation-with-Lora-and-Pruning.ipynb  # Knowledge Distillation, LoRA and Pruning experiments
-├── Lora and Pruning.ipynb                   # LoRA and Pruning experiments
+├── gpt2base-lora and pruning.ipynb          # LoRA and Pruning experiments for base model GPT2
 ├── Quantization.ipynb                       # Quantization experiments
 ├── Quantization-with-Flash-Attention.ipynb  # Quantization with FlashAttention
-├── gpt2-lora.py                            # LoRA implementation for GPT-2
-├── gp2-flashattention.py                   # FlashAttention implementation
+├── gpt2-flashattention.py                   # FlashAttention implementation
 ├── gpt2-flashAttention-newmetrics.py       # Enhanced metrics for FlashAttention
 ├── distillation/                           # Knowledge distillation implementations
 │   ├── model_comparison.py                 # Compare different model configurations
