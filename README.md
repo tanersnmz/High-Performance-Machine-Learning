@@ -2,15 +2,41 @@
 
 This repository provides a comprehensive optimization framework for the GPT-2 language model, integrating multiple model compression and acceleration techniques including Knowledge Distillation, LoRA (Low-Rank Adaptation), and Weight Pruning, alongside FlashAttention and quantization support. It systematically measures training and inference performance across different configurations.
 
+## 🧪 Experimental Setup
+
+* **Python version**: `3.10.15`
+* **PyTorch version**: `2.4.1+cu121`
+* **CUDA available**: `True`
+* **CUDA version**: `12.1`
+* **GPU model**: `NVIDIA Tesla T4`
+* **Number of GPUs**: `1`
+* **Available GPU memory**: `15.64 GB`
+* **Device used**: `cuda`
+
+Birkaç saniyeliğine düşündüm
+
+
 ## 📖 Project Overview
 
-This project researches and implements the combined effects of the following model optimization techniques:
+This repository investigates **how far we can push GPT-2 on affordable GPUs** by *stacking* several optimization methods into a single training & inference pipeline.
 
-1. Knowledge Distillation: Transferring knowledge from larger "teacher" models to smaller "student" models
-2. LoRA (Low-Rank Adaptation): Inserting a small number of trainable parameters through low-rank matrix decomposition while keeping most model weights frozen
-3. Weight Pruning: Identifying and removing unimportant parameter connections to reduce model size and computational complexity
-4. FlashAttention: Optimized implementation to accelerate attention mechanism computations
-5. Quantization: Reducing weight precision from FP32/ FP16 to INT4
+| Stage                              | What we do                                                              | Why it helps                                                           |
+| ---------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **1 · Knowledge Distillation**     | Train a compact *student* GPT-2 on the soft-labels of a larger teacher. | Shrinks the base model while keeping perplexity close to the original. |
+| **2 · LoRA (Low-Rank Adaptation)** | Add \~0.25 % trainable rank-8 adapters to frozen weights.               | Fine-tunes with **≈100× fewer** updated parameters & lower VRAM.       |
+| **3 · 80 % Adapter Pruning**       | L1-prune the LoRA weights before fine-tuning.                           | Extra sparsity ⇒ smaller checkpoint; no extra compute at runtime.      |
+| **4 · INT4 NF4 Quantization**      | Load weights in 4-bit (bitsandbytes) with double-quant + FP16 compute.  | Cuts model memory by **4-5×** and speeds up GEMM kernels.              |
+| **5 · FlashAttention 2**           | Replace vanilla soft-max attention with bandwidth-optimal kernels.      | 2-3× faster attention + lower activation RAM.                          |
+
+### End-to-end Gains (Distilled → LoRA → Prune → INT4 + Flash)
+
+* **Training VRAM:** ↓ 66 %
+* **Inference VRAM:** ↓ 27 %
+* **Inference Forward throughput:** ↑ 3× | **Inference Generation throughput:** ↑ 1.5×
+* **Inference Latency:** -62 % (fwd) | -30 % (gen)
+* **Quality hit:** Δ PPL ≈ +0.9 (7.57 → 8.46)
+
+> **Goal:** put *full-pipeline* GPT-2 fine-tuning & serving on 8 GB laptop-class GPUs without noticeable quality loss.
 
 ## 🔧 Setup
 
