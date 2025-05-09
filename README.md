@@ -102,24 +102,25 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 
    ```bash
 
-   jupyte notebook Quantization-with-Flash-Attention.ipynb
+   jupyter notebook Quantization-with-Flash-Attention.ipynb
    ```
 
 ## 📊 Metrics Tracked
 
-### Training
+| Phase         | Metric              | What it Measures                                 | Unit           | Example WandB Key            |
+| ------------- | ------------------- | ------------------------------------------------ | -------------- | ---------------------------- |
+| **Training**  | **Time / batch**    | Wall-clock duration for one optimisation step    | seconds        | `batch_training_time`        |
+|               | **GPU VRAM**        | Allocated device memory during the step *(peak)* | MB             | `batch_memory_usage`         |
+|               | **Throughput**      | Samples processed per second                     | samples / s    | `batch_throughput`           |
+|               | **Loss**            | Cross-entropy training loss                      | –              | `batch_loss`                 |
+|               | **Perplexity**      | exp(loss) – readability of model outputs         | –              | `batch_perplexity`           |
+|               | **± StdDev**        | Variation across all recorded batches            | same as metric | calculated offline           |
+| **Inference** | **Latency / batch** | End-to-end forward (or generate) time            | seconds        | `batch_inference_time`       |
+|               | **GPU VRAM**        | Allocated device memory during the pass          | MB             | `batch_inference_memory`     |
+|               | **Throughput**      | Samples served per second                        | samples / s    | `batch_inference_throughput` |
+|               | **Perplexity**      | exp(loss) on validation set                      | –              | `batch_inference_perplexity` |
+|               | **± StdDev**        | Variation across all recorded batches            | same as metric | calculated offline           |
 
-- Time per batch (seconds)
-- GPU memory usage (MB)
-- Throughput (samples/second)
-- Standard deviation for all metrics
-
-### Inference
-
-- Latency per batch (seconds)
-- GPU memory usage (MB)
-- Throughput (samples/second)
-- Standard deviation for all metrics
 
 ## 📈 Experimental Results
 
