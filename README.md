@@ -140,7 +140,7 @@ The individual URLs for results:
 3. Distilled Model, GPT2 and GPT2 Medium Comparison: https://wandb.ai/hpml_final_project/gpt2-model-comparison
 4. LoRA and Pruning Experiments: https://wandb.ai/hpml_final_project/lora-pruning-comparison-dstill-3
 5. Quantization Experiments without Flash Attention: https://wandb.ai/hpml_final_project/quantization-impact-comparison
-6. Flash-Attention Experiments with Flash Attention：https://wandb.ai/hpml_final_project/Quantized%20and%20Flash%20Enabled
+6. Quantization Experiments with Flash Attention：https://wandb.ai/hpml_final_project/Quantized%20and%20Flash%20Enabled
 
 ## 💾 Model Weights
 
