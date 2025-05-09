@@ -131,7 +131,9 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 
 ### View Results Online
 
-All experiment results are logged to Weights & Biases for detailed analysis and visualization. You can access the results at the following URLs:
+All experiment results are logged to Weights & Biases for detailed analysis and visualization. You can access all results we have via: https://wandb.ai/hpml_final_project/projects
+
+The individual URLs for results:
 
 1. The impact about Batch Size and Sequnence Length: https://wandb.ai/hpml_final_project/model-benchmark
 2. Distillation Experiments: https://wandb.ai/hpml_final_project/gpt2-progressive-distillation
