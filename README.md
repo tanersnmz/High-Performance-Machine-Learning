@@ -13,9 +13,6 @@ This repository provides a comprehensive optimization framework for the GPT-2 la
 * **Available GPU memory**: `15.64 GB`
 * **Device used**: `cuda`
 
-Birkaç saniyeliğine düşündüm
-
-
 ## 📖 Project Overview
 
 This repository investigates **how far we can push GPT-2 on affordable GPUs** by *stacking* several optimization methods into a single training & inference pipeline.
