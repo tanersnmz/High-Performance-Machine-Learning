@@ -57,7 +57,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 ## 📁 Project Structure
 
 ~~~plaintext
-├── Distillation-with-Lora-and-Pruning.ipynb  # Knowledge Distillation, LoRA and Pruning experiments
+├── Distillation-with-Lora-and-Pruning.ipynb  # LoRA and Pruning experiments for Knowledge Distilled model 
 ├── gpt2base-lora and pruning.ipynb          # LoRA and Pruning experiments for base model GPT2, just for experiment purposes, not used in final code
 ├── Quantization.ipynb                       # Quantization experiments
 ├── Quantization-with-Flash-Attention.ipynb  # Quantization with FlashAttention
