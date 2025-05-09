@@ -10,7 +10,7 @@ This project researches and implements the combined effects of the following mod
 2. LoRA (Low-Rank Adaptation): Inserting a small number of trainable parameters through low-rank matrix decomposition while keeping most model weights frozen
 3. Weight Pruning: Identifying and removing unimportant parameter connections to reduce model size and computational complexity
 4. FlashAttention: Optimized implementation to accelerate attention mechanism computations
-5. Quantization: Reducing weight precision from FP32 to FP16 or even INT8
+5. Quantization: Reducing weight precision from FP32/ FP16 to INT4
 
 ## 🔧 Setup
 
