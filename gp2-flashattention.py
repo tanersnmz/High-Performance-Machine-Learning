@@ -87,10 +87,9 @@ class GPT2FlashBenchmark:
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token  
         config = GPT2Config.from_pretrained(model_name)
-        config.use_flash_attention = True  # This flag enables native flash attention if supported
+        config.use_flash_attention = True  # native flash attention 
         
         self.model = GPT2LMHeadModel.from_pretrained(model_name, config=config).to(self.device)
-        t
         logger.info("Loading dataset...")
         self.dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
         
@@ -100,7 +99,7 @@ class GPT2FlashBenchmark:
         self.model.train()
         
         train_data = self.dataset["train"]["text"]
-        train_data = [text for text in train_data if len(text.strip()) > 0]  # Filter out empty texts
+        train_data = [text for text in train_data if len(text.strip()) > 0]  # We filter out empty texts
         
         metrics = {
             "training_time": [],
