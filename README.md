@@ -80,7 +80,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 1. First, run the distillation experiments to create the distilled model:
 
    ~~~bash
-   python distillation/run\_distillation\_experiments.py
+   python distillation/run_distillation_experiments.py
    ~~~
 
    This script performs knowledge distillation from GPT-2-medium (teacher) to GPT-2 (student), creating checkpoints at specified epochs (5, 10, 15, 20, 25, 30, 35, 40, 45, 50). The distilled model will be saved in the distilled\_model directory.
