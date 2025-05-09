@@ -103,36 +103,45 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 
    ```bash
 
-   jupyte notebook Quantization-with-Flash-Attention.ipynb
+   jupyter notebook Quantization-with-Flash-Attention.ipynb
    ```
 
 ## 📊 Metrics Tracked
 
-### Training
+| Phase         | Metric              | What it Measures                                 | Unit           | Example WandB Key            |
+| ------------- | ------------------- | ------------------------------------------------ | -------------- | ---------------------------- |
+| **Training**  | **Time / batch**    | Wall-clock duration for one optimisation step    | seconds        | `batch_training_time`        |
+|               | **GPU VRAM**        | Allocated device memory during the step *(peak)* | MB             | `batch_memory_usage`         |
+|               | **Throughput**      | Samples processed per second                     | samples / s    | `batch_throughput`           |
+|               | **Loss**            | Cross-entropy training loss                      | –              | `batch_loss`                 |
+|               | **Perplexity**      | exp(loss) – readability of model outputs         | –              | `batch_perplexity`           |
+|               | **± StdDev**        | Variation across all recorded batches            | same as metric | calculated offline           |
+| **Inference** | **Latency / batch** | End-to-end forward (or generate) time            | seconds        | `batch_inference_time`       |
+|               | **GPU VRAM**        | Allocated device memory during the pass          | MB             | `batch_inference_memory`     |
+|               | **Throughput**      | Samples served per second                        | samples / s    | `batch_inference_throughput` |
+|               | **Perplexity**      | exp(loss) on validation set                      | –              | `batch_inference_perplexity` |
+|               | **± StdDev**        | Variation across all recorded batches            | same as metric | calculated offline           |
+| **Metrics Used For Comparisons** | **Fwd Latency**    | Pure forward-pass time per *sample*               | **ms**      | `fwd_pass_latency_ms` |
+|               | **Fwd Throughput** | Forward samples served per second                 | samples / s | `fwd_pass_throughput` |
+|               | **Gen Latency**    | *generate()* time per sample (incl. 5 new tokens) | **ms**      | `gen_latency_ms`      |
+|               | **Gen Throughput** | Generation samples per second                     | samples / s | `gen_throughput`      |
 
-- Time per batch (seconds)
-- GPU memory usage (MB)
-- Throughput (samples/second)
-- Standard deviation for all metrics
 
-### Inference
-
-- Latency per batch (seconds)
-- GPU memory usage (MB)
-- Throughput (samples/second)
-- Standard deviation for all metrics
 
 ## 📈 Experimental Results
 
 ### View Results Online
 
-All experiment results are logged to Weights & Biases for detailed analysis and visualization. You can access the results at the following URLs:
+All experiment results are logged to Weights & Biases for detailed analysis and visualization. You can access all results we have via: https://wandb.ai/hpml_final_project/projects
+
+The individual URLs for results:
 
 1. The impact about Batch Size and Sequnence Length: https://wandb.ai/hpml_final_project/model-benchmark
 2. Distillation Experiments: https://wandb.ai/hpml_final_project/gpt2-progressive-distillation
 3. Distilled Model, GPT2 and GPT2 Medium Comparison: https://wandb.ai/hpml_final_project/gpt2-model-comparison
 4. LoRA and Pruning Experiments: https://wandb.ai/hpml_final_project/lora-pruning-comparison-dstill-3
-5. Flash-Attention Experiments：
+5. Quantization Experiments without Flash Attention: https://wandb.ai/hpml_final_project/quantization-impact-comparison
+6. Flash-Attention Experiments with Flash Attention：https://wandb.ai/hpml_final_project/Quantized%20and%20Flash%20Enabled
 
 ## 💾 Model Weights
 
