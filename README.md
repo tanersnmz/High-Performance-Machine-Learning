@@ -67,6 +67,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 ├── gpt2base-lora and pruning.ipynb          # LoRA and Pruning experiments for base model GPT2, just for experiment purposes, not used in final code
 ├── Quantization.ipynb                       # Quantization experiments
 ├── Quantization-with-Flash-Attention.ipynb  # Quantization with FlashAttention
+├── Profiling.ipynb                          # Performance profiling for optimized models with detailed CUDA and CPU metrics
 ├── gpt2-flashattention.py                   # FlashAttention implementation, just for experiment purposes, not used in final code
 ├── gpt2-flashAttention-newmetrics.py       # Enhanced metrics for FlashAttention, just for experiment purposes, not used in final code
 ├── distillation/                           # Knowledge distillation implementations
@@ -74,6 +75,9 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 │   ├── run_distillation_experiments.py     # Run distillation experiments
 │   └── distillation_eval.py                # Evaluate distilled models
 ├── old_experiment/                         # Legacy experiments on aihwkit (ignore it)
+├── tb_logs/                                # TensorBoard and trace logs for model profiling
+│   ├── distilled.json                      # Performance traces for the distilled model
+│   └── gpt2.json                           # Performance traces for the base GPT2 model
 ├── requirements.txt                        # Project dependencies
 ├── LICENSE                                 # License information
 └── README.md   
@@ -107,9 +111,16 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 4. FlashAttention and quantization experiments:
 
    ```bash
-
    jupyter notebook Quantization-with-Flash-Attention.ipynb
    ```
+
+5. Detailed model performance profiling:
+
+   ```bash
+   jupyter notebook Profiling.ipynb
+   ```
+
+   This notebook performs detailed performance profiling of base GPT2 and optimized models, providing CUDA/CPU timing information, memory usage, and throughput metrics. The profiling results are saved to the `tb_logs` directory for analysis.
 
 ## 📊 Metrics Tracked
 
@@ -156,3 +167,4 @@ All our optimized models are available for download:
 
 1. Distilled Model (GPT2 distilled from GPT2-Medium): https://drive.google.com/drive/folders/1Uf_C71Goa9yB8zThMvuhkkE2AU11EUTX?usp=drive_link
 2. Distilled Model with LoRA and Pruning: https://drive.google.com/drive/folders/1I6lJEA2djmnz7UKGxnuOfxy279jO5Gqv?usp=drive_link
+
