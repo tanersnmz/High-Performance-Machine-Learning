@@ -62,6 +62,7 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 ## 📁 Project Structure
 
 ~~~plaintext
+├── COMS_E6998_Final_Project_Report.pdf        # Final report that explains the project in detail
 ├── Select pruning-ratio.ipynb                 # Experiments for Selecting the Optimal Pruning Ratio (80%) for Our Use Case
 ├── Distillation-with-Lora-and-Pruning.ipynb  # LoRA and Pruning experiments for Knowledge Distilled model 
 ├── gpt2base-lora and pruning.ipynb          # LoRA and Pruning experiments for base model GPT2, just for experiment purposes, not used in final code
@@ -80,7 +81,9 @@ This repository investigates **how far we can push GPT-2 on affordable GPUs** by
 │   └── gpt2.json                           # Performance traces for the base GPT2 model
 ├── requirements.txt                        # Project dependencies
 ├── LICENSE                                 # License information
-└── README.md   
+└── README.md
+
+
 ~~~
 
 ## 🚀 Usage
